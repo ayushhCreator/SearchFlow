@@ -1,0 +1,51 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install uv
+      run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    - name: Install dependencies
+      run: |
+        . $HOME/.cargo/env
+        uv pip install black flake8 isort mypy
+
+    - name: Run Black (code formatting check)
+      run: |
+        . $HOME/.cargo/env
+        black --check app/ tests/
+      continue-on-error: true
+
+    - name: Run isort (import sorting check)
+      run: |
+        . $HOME/.cargo/env
+        isort --check-only app/ tests/
+      continue-on-error: true
+
+    - name: Run Flake8 (linting)
+      run: |
+        . $HOME/.cargo/env
+        flake8 app/ tests/ --max-line-length=100 --extend-ignore=E203
+      continue-on-error: true
+
+    - name: Run MyPy (type checking)
+      run: |
+        . $HOME/.cargo/env
+        mypy app/ --ignore-missing-imports
+      continue-on-error: true
