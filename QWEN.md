@@ -16,6 +16,7 @@ The SearchFlow architecture consists of several key components working together:
 4. **MCP (Model Context Protocol)** - Tool interface layer that exposes search as a callable tool for AI agents
 
 ### Data Flow
+
 ```
 User / App / AI Agent
        ↓
@@ -70,6 +71,7 @@ app/
 ## Development Status
 
 Currently, the project is in the early stages of development:
+
 - Basic file structure is defined
 - Comprehensive documentation exists explaining the architecture and vision
 - Only a minimal `main.py` with a "Hello from searchflow!" function exists
@@ -89,15 +91,17 @@ Currently, the project is in the early stages of development:
 ## Building and Running
 
 The project is designed to be containerized using Docker:
+
 - Docker Compose runs the API + SearXNG together
 - For development: `docker-compose up --build`
-- API will be available at http://localhost:8000
-- Swagger UI at http://localhost:8000/docs
-- Example API call: `curl -X POST http://localhost:8000/search -H "Content-Type: application/json" -d '{"query": "Best FastAPI practices"}'`
+- API will be available at http://localhost:8007
+- Swagger UI at http://localhost:8007/docs
+- Example API call: `curl -X POST http://localhost:8007/search -H "Content-Type: application/json" -d '{"query": "Best FastAPI practices"}'`
 
 ## Testing
 
 The project is planned to use Pytest for:
+
 - API health tests
 - Search endpoint tests
 - End-to-end integration tests
@@ -105,6 +109,7 @@ The project is planned to use Pytest for:
 ## Future Scope
 
 Planned enhancements include:
+
 - Source credibility scoring
 - Citations and references
 - Query decomposition for complex questions

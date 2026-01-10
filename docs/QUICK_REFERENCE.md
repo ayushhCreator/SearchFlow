@@ -73,7 +73,7 @@ python -c "import fastapi; print(fastapi.__version__)"
 docker build -f docker/Dockerfile.api -t searchflow:latest .
 
 # Run container
-docker run -p 8000:8000 searchflow:latest
+docker run -p 8007:8007 searchflow:latest
 
 # Docker Compose (all services)
 docker-compose up
@@ -138,7 +138,7 @@ async def search(request: SearchRequest):
 
 # Run locally
 # python app/main.py
-# Visit http://localhost:8000/docs
+# Visit http://localhost:8007/docs
 ```
 
 ---
@@ -220,7 +220,7 @@ uv venv .venv
 | "python not found"    | Check PATH, reinstall Python                            |
 | ".venv not activated" | Run `source .venv/bin/activate`                         |
 | "ModuleNotFoundError" | Install requirements: `pip install -r requirements.txt` |
-| "Port 8000 in use"    | Kill process: `lsof -i :8000 \| kill -9 <PID>`          |
+| "Port 8007 in use"    | Kill process: `lsof -i :8007 \| kill -9 <PID>`          |
 | "Docker not found"    | Install Docker, add to PATH                             |
 | "Permission denied"   | Use `sudo`, or add user to docker group                 |
 | "Build fails"         | Check Dockerfile path, run from root                    |
@@ -244,7 +244,7 @@ Total: 9-14 hours
 ## 🔗 Key Ports
 
 ```
-8000 - FastAPI application
+8007 - FastAPI application
 8888 - SearXNG search engine
 5432 - PostgreSQL (if added)
 6379 - Redis (if added)
@@ -266,7 +266,7 @@ docker --version
 docker run hello-world    # Test Docker works
 
 # API health
-curl http://localhost:8000/health
+curl http://localhost:8007/health
 
 # Tests pass
 pytest --tb=short
@@ -297,7 +297,7 @@ pytest --tb=short
 DEBUG=false
 LOG_LEVEL=INFO
 SEARXNG_URL=http://localhost:8888
-ALLOWED_ORIGINS=http://localhost,http://localhost:8000
+ALLOWED_ORIGINS=http://localhost,http://localhost:8007
 ```
 
 ---
