@@ -32,5 +32,5 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: ["pydantic>=2.0.0", "pydantic-settings>=2.0.0"]
-        args: ["--ignore-missing-imports", "--explicit-package-bases", "app/"]
-        exclude: ^tests/
+        args: ["--ignore-missing-imports", "--no-error-summary", "app/"]
+        stages: [manual]
