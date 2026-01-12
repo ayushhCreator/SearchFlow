@@ -11,7 +11,7 @@ import logging
 from typing import Any, Dict, Optional
 
 from app.cache.redis_client import CacheClient
-from app.services.search_service import SearchService
+from app.services import SearchService
 
 logger = logging.getLogger(__name__)
 

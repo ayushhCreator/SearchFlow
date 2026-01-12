@@ -1,5 +1,5 @@
 """
-Search API Routes
+API Routes
 
 REST and SSE endpoints for search functionality.
 Uses SearchService for business logic (DRY/SOLID compliant).
@@ -8,55 +8,23 @@ Uses SearchService for business logic (DRY/SOLID compliant).
 import asyncio
 import json
 import logging
-from typing import AsyncGenerator, List, Optional
+from typing import AsyncGenerator
 
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
+from app.api.models import SearchRequest, SearchResult
 from app.cache.redis_client import get_cache_client
-from app.services.search_service import get_search_service
+from app.services import get_search_service
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["search"])
 
 
-class SearchRequest(BaseModel):
-    """Search request model"""
-
-    query: str
-    include_context: bool = True
-    skip_cache: bool = False
-
-
-class SearchResult(BaseModel):
-    """Search result model"""
-
-    question: str
-    answer: str
-    confidence: float
-    sources: List[str]
-    context: Optional[List[dict]] = None
-    cached: bool = False
-
-
 @router.post("/search", response_model=SearchResult)
 async def search(request: SearchRequest) -> SearchResult:
-    """
-    Search and answer using DSPy + SearXNG
-
-    Features:
-    - Caching: Repeated queries return cached results instantly
-    - AI Reasoning: DSPy synthesizes answers from web sources
-
-    Example:
-    ```bash
-    curl -X POST http://localhost:8007/api/v1/search \\
-      -H "Content-Type: application/json" \\
-      -d '{"query": "what is dspy"}'
-    ```
-    """
+    """Search and answer using DSPy + SearXNG."""
     try:
         service = await get_search_service()
         result = await service.search(
@@ -64,15 +32,11 @@ async def search(request: SearchRequest) -> SearchResult:
             skip_cache=request.skip_cache,
             include_context=request.include_context,
         )
-
         return SearchResult(**result)
 
     except ValueError as e:
         logger.error(f"Configuration error: {e}")
-        raise HTTPException(
-            status_code=503,
-            detail="Search service not configured. Please set API keys in .env file.",
-        )
+        raise HTTPException(status_code=503, detail="Search service not configured.")
     except Exception as e:
         logger.error(f"Search failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -80,21 +44,7 @@ async def search(request: SearchRequest) -> SearchResult:
 
 @router.post("/search/stream")
 async def search_stream(request: Request) -> EventSourceResponse:
-    """
-    Streaming search endpoint using Server-Sent Events (SSE).
-
-    Streams:
-    1. Status updates (searching, found sources, etc.)
-    2. Answer tokens as they're generated
-    3. Final sources
-
-    Example:
-    ```bash
-    curl -N -X POST http://localhost:8007/api/v1/search/stream \\
-      -H "Content-Type: application/json" \\
-      -d '{"query": "what is python"}'
-    ```
-    """
+    """Streaming search endpoint using SSE."""
 
     async def event_generator() -> AsyncGenerator[dict, None]:
         try:
@@ -125,6 +75,7 @@ async def search_stream(request: Request) -> EventSourceResponse:
                         "event": "status",
                         "data": json.dumps({"message": event.get("message", "")}),
                     }
+                    await asyncio.sleep(0.1)
                 elif event_type == "done":
                     yield {
                         "event": "done",
@@ -142,10 +93,6 @@ async def search_stream(request: Request) -> EventSourceResponse:
                         "data": json.dumps({"message": event.get("message", "")}),
                     }
 
-                # Small delay for visual effect on status events
-                if event_type == "status":
-                    await asyncio.sleep(0.1)
-
         except Exception as e:
             logger.error(f"Streaming search failed: {e}")
             yield {"event": "error", "data": json.dumps({"message": str(e)})}
@@ -155,7 +102,7 @@ async def search_stream(request: Request) -> EventSourceResponse:
 
 @router.get("/search/health")
 async def search_health():
-    """Health check for search functionality"""
+    """Health check for search functionality."""
     cache = await get_cache_client()
     cache_stats = await cache.get_stats()
     return {
@@ -168,7 +115,7 @@ async def search_health():
 
 @router.delete("/cache")
 async def clear_cache():
-    """Clear all cached search results"""
+    """Clear all cached search results."""
     cache = await get_cache_client()
     deleted = await cache.clear_all()
     return {"message": f"Cleared {deleted} cached entries"}
@@ -176,6 +123,6 @@ async def clear_cache():
 
 @router.get("/cache/stats")
 async def cache_stats():
-    """Get cache statistics"""
+    """Get cache statistics."""
     cache = await get_cache_client()
     return await cache.get_stats()
