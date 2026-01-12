@@ -134,3 +134,14 @@ pre-commit:
 
 commit-ready: format lint test
 	@echo "✅ Ready to commit!"
+
+commit:
+	@echo "Running pre-commit checks..."
+	@. .venv/bin/activate && pre-commit run --all-files || true
+	@echo ""
+	@echo "Staging fixed files..."
+	@git add -u
+	@echo ""
+	@read -p "Commit message: " msg; \
+	git commit -m "$$msg"
+	@echo "✅ Committed!"

@@ -1,8 +1,8 @@
 """
 Search API Routes
 
-This module defines the search endpoints using DSPy + SearXNG.
-Includes caching and streaming support.
+REST and SSE endpoints for search functionality.
+Uses SearchService for business logic (DRY/SOLID compliant).
 """
 
 import asyncio
@@ -14,8 +14,8 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
-from app.ai.dspy_pipeline import DSPyPipeline
 from app.cache.redis_client import get_cache_client
+from app.services.search_service import get_search_service
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class SearchRequest(BaseModel):
 
     query: str
     include_context: bool = True
-    skip_cache: bool = False  # Force fresh search
+    skip_cache: bool = False
 
 
 class SearchResult(BaseModel):
@@ -58,55 +58,21 @@ async def search(request: SearchRequest) -> SearchResult:
     ```
     """
     try:
-        logger.info(f"Search request: {request.query}")
-
-        # Check cache first (unless skip_cache is set)
-        cache = await get_cache_client()
-        if not request.skip_cache:
-            cached_result = await cache.get(request.query)
-            if cached_result:
-                logger.info("Returning cached result")
-                return SearchResult(
-                    question=cached_result["question"],
-                    answer=cached_result["answer"],
-                    confidence=cached_result["confidence"],
-                    sources=cached_result.get("sources", []),
-                    context=cached_result.get("context")
-                    if request.include_context
-                    else None,
-                    cached=True,
-                )
-
-        # Initialize DSPy pipeline
-        try:
-            pipeline = DSPyPipeline(k_results=5)
-        except ValueError as e:
-            logger.error(f"DSPy initialization failed: {e}")
-            raise HTTPException(
-                status_code=503,
-                detail="Search service not configured. Please set API keys in .env file.",
-            )
-
-        # Search and answer
-        result = pipeline.search_and_answer(request.query)
-
-        # Store in cache
-        await cache.set(request.query, result)
-
-        # Format response
-        response = SearchResult(
-            question=result["question"],
-            answer=result["answer"],
-            confidence=result["confidence"],
-            sources=result.get("sources", []),
-            context=result.get("context") if request.include_context else None,
-            cached=False,
+        service = await get_search_service()
+        result = await service.search(
+            query=request.query,
+            skip_cache=request.skip_cache,
+            include_context=request.include_context,
         )
 
-        return response
+        return SearchResult(**result)
 
-    except HTTPException:
-        raise
+    except ValueError as e:
+        logger.error(f"Configuration error: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail="Search service not configured. Please set API keys in .env file.",
+        )
     except Exception as e:
         logger.error(f"Search failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -132,7 +98,6 @@ async def search_stream(request: Request) -> EventSourceResponse:
 
     async def event_generator() -> AsyncGenerator[dict, None]:
         try:
-            # Parse request body
             body = await request.json()
             query = body.get("query", "")
             skip_cache = body.get("skip_cache", False)
@@ -144,97 +109,42 @@ async def search_stream(request: Request) -> EventSourceResponse:
                 }
                 return
 
-            logger.info(f"Streaming search request: {query}")
+            logger.info(f"Streaming search: {query}")
+            service = await get_search_service()
 
-            # Check cache first
-            cache = await get_cache_client()
-            if not skip_cache:
-                cached_result = await cache.get(query)
-                if cached_result:
+            async for event in service.search_streaming(query, skip_cache):
+                event_type = event.get("type", "status")
+
+                if event_type == "token":
+                    yield {
+                        "event": "token",
+                        "data": json.dumps({"content": event.get("content", "")}),
+                    }
+                elif event_type == "status":
                     yield {
                         "event": "status",
-                        "data": json.dumps({"message": "Found cached result"}),
+                        "data": json.dumps({"message": event.get("message", "")}),
                     }
-                    await asyncio.sleep(0.1)
-
-                    # Stream cached answer word by word for visual effect
-                    answer = cached_result.get("answer", "")
-                    words = answer.split()
-                    for i, word in enumerate(words):
-                        yield {
-                            "event": "token",
-                            "data": json.dumps({"content": word + " "}),
-                        }
-                        await asyncio.sleep(0.02)  # Small delay for visual effect
-
+                elif event_type == "done":
                     yield {
                         "event": "done",
                         "data": json.dumps(
                             {
-                                "sources": cached_result.get("sources", []),
-                                "confidence": cached_result.get("confidence", 0),
-                                "cached": True,
+                                "sources": event.get("sources", []),
+                                "confidence": event.get("confidence", 0),
+                                "cached": event.get("cached", False),
                             }
                         ),
                     }
-                    return
-
-            # Status: Searching
-            yield {
-                "event": "status",
-                "data": json.dumps({"message": "Searching the web..."}),
-            }
-            await asyncio.sleep(0.1)
-
-            # Initialize DSPy pipeline
-            try:
-                pipeline = DSPyPipeline(k_results=5)
-            except ValueError as e:
-                yield {
-                    "event": "error",
-                    "data": json.dumps({"message": f"Configuration error: {str(e)}"}),
-                }
-                return
-
-            # Status: Found sources
-            yield {
-                "event": "status",
-                "data": json.dumps({"message": "Analyzing sources..."}),
-            }
-            await asyncio.sleep(0.1)
-
-            # Perform search (this is blocking, but we stream the result)
-            result = pipeline.search_and_answer(query)
-
-            # Status: Reasoning
-            yield {
-                "event": "status",
-                "data": json.dumps({"message": "Generating answer..."}),
-            }
-            await asyncio.sleep(0.1)
-
-            # Stream answer word by word
-            answer = result.get("answer", "")
-            words = answer.split()
-            for word in words:
-                yield {"event": "token", "data": json.dumps({"content": word + " "})}
-                await asyncio.sleep(0.03)  # Simulate token streaming
-
-            # Cache the result
-            await cache.set(query, result)
-
-            # Done event with metadata
-            yield {
-                "event": "done",
-                "data": json.dumps(
-                    {
-                        "sources": result.get("sources", []),
-                        "confidence": result.get("confidence", 0),
-                        "context": result.get("context", []),
-                        "cached": False,
+                elif event_type == "error":
+                    yield {
+                        "event": "error",
+                        "data": json.dumps({"message": event.get("message", "")}),
                     }
-                ),
-            }
+
+                # Small delay for visual effect on status events
+                if event_type == "status":
+                    await asyncio.sleep(0.1)
 
         except Exception as e:
             logger.error(f"Streaming search failed: {e}")
