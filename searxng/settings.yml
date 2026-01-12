@@ -1,0 +1,23 @@
+# SearXNG settings for development
+# This configuration disables rate limiting and bot detection
+
+use_default_settings: true
+
+server:
+  # Disable rate limiting completely
+  limiter: false
+  # Disable public instance requirement
+  public_instance: false
+  secret_key: "changeme"
+
+# Disable bot detection
+botdetection:
+  ip_limit:
+    link_token: false
+
+# Search settings
+search:
+  # Allow all formats
+  formats:
+    - html
+    - json

@@ -1,0 +1,15 @@
+# SearXNG limiter configuration
+# Disable rate limiting for development
+
+[botdetection.ip_limit]
+# Disable IP-based rate limiting
+link_token = false
+
+[botdetection.ip_lists]
+# Allow all IPs (no blocking)
+pass_ip = [
+    '127.0.0.0/8',      # localhost
+    '172.16.0.0/12',    # Docker internal
+    '0.0.0.0/0'         # Allow all (development only)
+]
+block_ip = []

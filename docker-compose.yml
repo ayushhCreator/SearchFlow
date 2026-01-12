@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   api:
@@ -24,8 +24,10 @@ services:
     environment:
       - SEARXNG_SECRET=your_secret_key_here
       - BASE_URL=http://localhost:8888
+      - SEARXNG_SETTINGS_PATH=/etc/searxng/settings.yml
     volumes:
       - searxng-data:/data
+      - ./searxng/settings.yml:/etc/searxng/settings.yml
     command: start
 
 volumes:

@@ -1,4 +1,4 @@
-.PHONY: help install test lint format clean run docker-build docker-up docker-down
+.PHONY: help install test lint format clean run docker-build docker-up docker-down commit-ready
 
 help:
 	@echo "SearchFlow Development Commands"
@@ -13,6 +13,7 @@ help:
 	@echo "make docker-up     - Start services with docker-compose"
 	@echo "make docker-down   - Stop services"
 	@echo "make pre-commit    - Install and run pre-commit hooks"
+	@echo "make commit-ready  - Format, lint, and test before commit"
 
 install:
 	@echo "Installing dependencies..."
@@ -65,3 +66,6 @@ pre-commit:
 	pre-commit install
 	@echo "Running pre-commit on all files..."
 	. .venv/bin/activate && pre-commit run --all-files
+
+commit-ready: format lint test
+	@echo "✅ Ready to commit!"
