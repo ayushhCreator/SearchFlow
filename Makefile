@@ -1,24 +1,37 @@
-.PHONY: help install test lint format clean run docker-build docker-up docker-down commit-ready
+.PHONY: help install test lint format clean run docker-build docker-up docker-down docker-restart restart logs health status commit-ready frontend-dev frontend-build mcp-server
 
 help:
 	@echo "SearchFlow Development Commands"
 	@echo "================================"
-	@echo "make install       - Install dependencies with uv"
-	@echo "make test          - Run tests with coverage"
-	@echo "make lint          - Run code quality checks"
-	@echo "make format        - Format code with black and isort"
-	@echo "make clean         - Remove generated files and caches"
-	@echo "make run           - Run the application locally"
-	@echo "make docker-build  - Build Docker image"
-	@echo "make docker-up     - Start services with docker-compose"
-	@echo "make docker-down   - Stop services"
-	@echo "make pre-commit    - Install and run pre-commit hooks"
-	@echo "make commit-ready  - Format, lint, and test before commit"
+	@echo ""
+	@echo "Development:"
+	@echo "  make install       - Install dependencies with uv"
+	@echo "  make run           - Run the API locally (port 8007)"
+	@echo "  make frontend-dev  - Run frontend dev server (port 3000)"
+	@echo "  make mcp-server    - Run MCP server for AI agents"
+	@echo ""
+	@echo "Docker:"
+	@echo "  make docker-build  - Build all Docker images"
+	@echo "  make docker-up     - Start all services (API, SearXNG, Redis, Frontend)"
+	@echo "  make docker-down   - Stop all services"
+	@echo "  make restart       - Restart all services"
+	@echo "  make logs          - View service logs"
+	@echo "  make health        - Check all services health"
+	@echo "  make status        - Check service status"
+	@echo ""
+	@echo "Quality:"
+	@echo "  make test          - Run tests with coverage"
+	@echo "  make lint          - Run code quality checks"
+	@echo "  make format        - Format code with black and isort"
+	@echo "  make clean         - Remove generated files and caches"
+	@echo "  make commit-ready  - Format, lint, and test before commit"
 
 install:
 	@echo "Installing dependencies..."
 	uv pip install -e ".[dev]"
 	uv pip install pre-commit
+	@echo "Installing frontend dependencies..."
+	cd frontend && npm install
 
 test:
 	@echo "Running tests with coverage..."
@@ -44,22 +57,74 @@ clean:
 	find . -type d -name "htmlcov" -exec rm -rf {} + 2>/dev/null || true
 	find . -name "*.pyc" -delete
 	rm -rf .coverage coverage.xml
+	rm -rf frontend/.next frontend/out
 
 run:
-	@echo "Starting SearchFlow on port 8007..."
-	uvicorn app.main:app --host 0.0.0.0 --port 8007 --reload
+	@echo "Starting SearchFlow API on port 8007..."
+	. .venv/bin/activate && uvicorn app.main:app --host 0.0.0.0 --port 8007 --reload
+
+frontend-dev:
+	@echo "Starting frontend dev server on port 3000..."
+	cd frontend && npm run dev
+
+frontend-build:
+	@echo "Building frontend for production..."
+	cd frontend && npm run build
+
+mcp-server:
+	@echo "Starting MCP server for AI agents..."
+	. .venv/bin/activate && python -m app.mcp.mcp_server
 
 docker-build:
 	@echo "Building Docker images..."
 	docker-compose build
 
 docker-up:
-	@echo "Starting services..."
+	@echo "Starting all services..."
 	docker-compose up -d
+	@echo ""
+	@echo "✅ Services starting..."
+	@echo "   API:      http://localhost:8007"
+	@echo "   Frontend: http://localhost:3000"
+	@echo "   SearXNG:  http://localhost:8888"
+	@echo "   Redis:    localhost:6380"
 
 docker-down:
 	@echo "Stopping services..."
 	docker-compose down
+
+docker-restart:
+	@echo "Restarting services..."
+	docker-compose restart
+
+restart: docker-restart
+	@echo "✅ Services restarted"
+
+logs:
+	@echo "Showing service logs (Ctrl+C to exit)..."
+	docker-compose logs -f
+
+health:
+	@echo "Checking service health..."
+	@echo ""
+	@echo "🔍 SearXNG:"
+	@curl -s http://localhost:8888 > /dev/null && echo "  ✅ Running at http://localhost:8888" || echo "  ❌ Not responding"
+	@echo ""
+	@echo "🚀 API:"
+	@curl -s http://localhost:8007/health > /dev/null && echo "  ✅ Running at http://localhost:8007" || echo "  ❌ Not responding"
+	@echo ""
+	@echo "🎨 Frontend:"
+	@curl -s http://localhost:3000 > /dev/null && echo "  ✅ Running at http://localhost:3000" || echo "  ❌ Not responding"
+	@echo ""
+	@echo "💾 Redis:"
+	@redis-cli -p 6380 ping > /dev/null 2>&1 && echo "  ✅ Running on port 6380" || echo "  ❌ Not responding (or redis-cli not installed)"
+	@echo ""
+	@echo "📊 API Details:"
+	@curl -s http://localhost:8007/health | python3 -m json.tool 2>/dev/null || echo "  ⚠️  Could not get detailed health info"
+
+status:
+	@echo "Service Status:"
+	@docker-compose ps
 
 pre-commit:
 	@echo "Installing pre-commit hooks..."

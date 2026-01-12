@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "searchflow": {
+      "command": "python",
+      "args": ["-m", "app.mcp.mcp_server"],
+      "cwd": "/home/ayush-raj/The_Base/SearchFlow",
+      "env": {
+        "PYTHONPATH": "/home/ayush-raj/The_Base/SearchFlow"
+      }
+    }
+  }
+}

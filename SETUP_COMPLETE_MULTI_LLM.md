@@ -5,6 +5,7 @@ Your SearchFlow application now supports **4 LLM providers** with easy switching
 ## 🎯 What Was Configured
 
 ### 1. **Environment Variables** (`.env`)
+
 - Added support for Groq, Gemini, and Ollama
 - Single `LLM_PROVIDER` variable controls which provider to use
 - Your API keys are already configured:
@@ -13,6 +14,7 @@ Your SearchFlow application now supports **4 LLM providers** with easy switching
   - ✅ Ollama: Ready for local use
 
 ### 2. **Configuration Module** (`app/core/config.py`)
+
 - Added settings for all 4 providers (Groq, Gemini, Ollama, OpenAI)
 - Each provider has its own:
   - API key (if needed)
@@ -21,11 +23,13 @@ Your SearchFlow application now supports **4 LLM providers** with easy switching
   - Temperature
 
 ### 3. **DSPy Pipeline** (`app/ai/dspy_pipeline.py`)
+
 - Dynamic LLM initialization based on `LLM_PROVIDER`
 - New `_initialize_llm()` method that auto-configures the right provider
 - Automatic fallback and error handling
 
 ### 4. **Documentation**
+
 - [docs/MULTI_LLM_SETUP.md](docs/MULTI_LLM_SETUP.md) - Complete guide
 - Test suite for configuration validation
 - Example script for testing
@@ -60,6 +64,7 @@ Status: ✅ Ready to use
 ## 📝 Quick Commands
 
 ### Test Your Configuration
+
 ```bash
 # Run the test script
 ./test_llm_setup.sh
@@ -69,6 +74,7 @@ python3 example_multi_llm.py
 ```
 
 ### Switch to Different Provider
+
 ```bash
 # Switch to Gemini
 sed -i 's/^LLM_PROVIDER=.*/LLM_PROVIDER=gemini/' .env
@@ -81,6 +87,7 @@ make restart
 ```
 
 ### Test via API
+
 ```bash
 curl -X POST http://localhost:8007/api/v1/search \
   -H "Content-Type: application/json" \
@@ -89,12 +96,12 @@ curl -X POST http://localhost:8007/api/v1/search \
 
 ## 📊 Provider Comparison
 
-| Provider | Speed    | Cost    | Free Tier         | Best For           |
-|----------|----------|---------|-------------------|--------------------|
-| **Groq** | ⚡ Ultra | Free    | 30 req/min        | Production (fast)  |
-| Gemini   | ⚡ Fast  | Free    | 60 req/min, 1M/d  | High volume        |
-| Ollama   | 🐢 Slow  | Free    | Unlimited (local) | Privacy, offline   |
-| OpenAI   | ⚡ Fast  | Paid    | None              | Best quality       |
+| Provider | Speed    | Cost | Free Tier         | Best For          |
+| -------- | -------- | ---- | ----------------- | ----------------- |
+| **Groq** | ⚡ Ultra | Free | 30 req/min        | Production (fast) |
+| Gemini   | ⚡ Fast  | Free | 60 req/min, 1M/d  | High volume       |
+| Ollama   | 🐢 Slow  | Free | Unlimited (local) | Privacy, offline  |
+| OpenAI   | ⚡ Fast  | Paid | None              | Best quality      |
 
 **Current: Using Groq** ✅ (Fastest free option)
 
@@ -114,6 +121,7 @@ curl -X POST http://localhost:8007/api/v1/search \
 ## ✅ Verification
 
 Your configuration has been verified:
+
 ```
 ✓ LLM Provider: groq
 ✓ Groq Model: llama-3.1-8b-instant
@@ -125,6 +133,7 @@ Your configuration has been verified:
 ## 🎯 Next Steps
 
 ### 1. Test Your Current Setup (Groq)
+
 ```bash
 # Run example
 python3 example_multi_llm.py
@@ -139,6 +148,7 @@ curl -X POST http://localhost:8007/api/v1/search \
 ### 2. Try Other Providers
 
 **Switch to Gemini:**
+
 ```bash
 # Edit .env: Change LLM_PROVIDER=groq to LLM_PROVIDER=gemini
 sed -i 's/^LLM_PROVIDER=groq/LLM_PROVIDER=gemini/' .env
@@ -146,6 +156,7 @@ make restart
 ```
 
 **Try Ollama (Local):**
+
 ```bash
 # Install Ollama first
 curl -fsSL https://ollama.ai/install.sh | sh
@@ -162,6 +173,7 @@ make restart
 ```
 
 ### 3. Run Tests
+
 ```bash
 # Test configuration
 pytest tests/test_multi_llm.py -v
@@ -173,16 +185,21 @@ pytest tests/test_multi_llm.py -v
 ## 🐛 Troubleshooting
 
 ### "API key not set"
+
 Check your [.env](.env) file has the correct API key for your provider.
 
 ### "Cannot connect to Ollama"
+
 Make sure Ollama is running: `ollama serve`
 
 ### "Unknown LLM provider"
+
 Verify `LLM_PROVIDER` in [.env](.env) is one of: `groq`, `gemini`, `ollama`, `openai`
 
 ### Rate limits (Groq/Gemini)
+
 Reduce token limits in [.env](.env):
+
 ```env
 GROQ_MAX_TOKENS=300  # Reduce from 500
 GEMINI_MAX_TOKENS=500  # Reduce from 1000
@@ -191,6 +208,7 @@ GEMINI_MAX_TOKENS=500  # Reduce from 1000
 ## 📖 More Information
 
 See [docs/MULTI_LLM_SETUP.md](docs/MULTI_LLM_SETUP.md) for:
+
 - Detailed provider comparison
 - Advanced configuration options
 - Troubleshooting guide
@@ -209,6 +227,7 @@ See [docs/MULTI_LLM_SETUP.md](docs/MULTI_LLM_SETUP.md) for:
 **Your SearchFlow is now a flexible, multi-provider AI search engine!** 🚀
 
 Start using it:
+
 ```bash
 make run
 ```

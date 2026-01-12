@@ -26,6 +26,8 @@ wheels/
 # Virtual environments
 .venv/
 venv/
+
+# Documentation drafts
 DOCS2/
 
 # IDEs
@@ -38,6 +40,7 @@ DOCS2/
 # Environment variables
 .env
 .env.local
+.env*.local
 
 # Pytest
 .pytest_cache/
@@ -57,3 +60,18 @@ docker-compose.override.yml
 
 # Lock files (generated)
 uv.lock
+
+# Frontend (Next.js)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.env.local
+
+# Redis data (if running locally)
+*.rdb
+dump.rdb
+
+# OS files
+.DS_Store
+Thumbs.db

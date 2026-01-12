@@ -37,6 +37,7 @@ GROQ_TEMPERATURE=0.3
 **Get API Key:** https://console.groq.com (free)
 **Free Tier:** 30 requests/min, 6000 tokens/min
 **Models Available:**
+
 - `llama-3.1-8b-instant` (fastest, smallest)
 - `llama-3.1-70b-versatile` (more powerful)
 - `mixtral-8x7b-32768` (long context)
@@ -54,6 +55,7 @@ GEMINI_TEMPERATURE=0.3
 **Get API Key:** https://makersuite.google.com/app/apikey (free)
 **Free Tier:** 60 requests/min, 1M tokens/day
 **Models Available:**
+
 - `gemini-2.0-flash-lite` (fastest, free)
 - `gemini-2.0-flash-exp` (experimental)
 - `gemini-1.5-pro` (most powerful)
@@ -69,11 +71,13 @@ OLLAMA_TEMPERATURE=0.3
 ```
 
 **Setup Ollama:**
+
 1. Install Ollama: https://ollama.ai
 2. Pull a model: `ollama pull llama2`
 3. Start Ollama: `ollama serve`
 
 **Models Available:**
+
 - `llama2` (good all-around)
 - `mistral` (fast, efficient)
 - `codellama` (code-focused)
@@ -172,16 +176,17 @@ GEMINI_MAX_TOKENS=500  # Reduce from 1000
 
 ## Provider Comparison
 
-| Provider | Cost      | Speed    | Free Tier             | Best For              |
-| -------- | --------- | -------- | --------------------- | --------------------- |
-| Groq     | Free      | ⚡ Ultra | 30 req/min            | Production, fast apps |
-| Gemini   | Free      | ⚡ Fast  | 60 req/min, 1M tok/d  | High volume           |
-| Ollama   | Free      | 🐢 Slow  | Unlimited (local)     | Privacy, offline      |
-| OpenAI   | Paid      | ⚡ Fast  | None                  | Best quality          |
+| Provider | Cost | Speed    | Free Tier            | Best For              |
+| -------- | ---- | -------- | -------------------- | --------------------- |
+| Groq     | Free | ⚡ Ultra | 30 req/min           | Production, fast apps |
+| Gemini   | Free | ⚡ Fast  | 60 req/min, 1M tok/d | High volume           |
+| Ollama   | Free | 🐢 Slow  | Unlimited (local)    | Privacy, offline      |
+| OpenAI   | Paid | ⚡ Fast  | None                 | Best quality          |
 
 ## Recommended Settings
 
 ### For Development:
+
 ```env
 LLM_PROVIDER=groq
 GROQ_MODEL=llama-3.1-8b-instant
@@ -189,6 +194,7 @@ GROQ_MAX_TOKENS=500
 ```
 
 ### For Production (High Volume):
+
 ```env
 LLM_PROVIDER=gemini
 GEMINI_MODEL=gemini-2.0-flash-lite
@@ -196,6 +202,7 @@ GEMINI_MAX_TOKENS=1000
 ```
 
 ### For Privacy/Offline:
+
 ```env
 LLM_PROVIDER=ollama
 OLLAMA_MODEL=llama2

@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api import search
+from app.cache.redis_client import close_cache_client, get_cache_client
 from app.core.config import settings
 from app.core.logging import setup_logging
 
@@ -53,7 +54,14 @@ async def root():
 @app.get("/health", tags=["health"])
 async def health():
     """Health check endpoint"""
-    return {"status": "healthy", "version": "0.1.0", "service": "SearchFlow API"}
+    cache = await get_cache_client()
+    cache_stats = await cache.get_stats()
+    return {
+        "status": "healthy",
+        "version": "0.1.0",
+        "service": "SearchFlow API",
+        "cache": cache_stats,
+    }
 
 
 # Include search router
@@ -68,12 +76,22 @@ async def startup_event():
     logger.info(f"Environment: Debug={settings.DEBUG}")
     logger.info(f"SearXNG URL: {settings.SEARXNG_URL}")
 
+    # Initialize cache
+    cache = await get_cache_client()
+    if cache._connected:
+        logger.info("Cache initialized successfully")
+    else:
+        logger.warning("Cache not available - running without caching")
+
 
 # Shutdown event
 @app.on_event("shutdown")
 async def shutdown_event():
     """Execute on application shutdown"""
     logger.info("SearchFlow API shutting down")
+    # Cleanup cache connection
+    await close_cache_client()
+    logger.info("Cache connection closed")
 
 
 if __name__ == "__main__":

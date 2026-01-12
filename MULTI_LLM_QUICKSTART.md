@@ -9,12 +9,12 @@ LLM_PROVIDER=groq     # ← Change this to: groq, gemini, or ollama
 
 ## Available Providers
 
-| Provider | In .env | Speed | Cost | API Key Required |
-|----------|---------|-------|------|-----------------|
-| **Groq** | `LLM_PROVIDER=groq` | ⚡⚡⚡ Ultra Fast | Free | ✅ Yes (already set) |
-| **Gemini** | `LLM_PROVIDER=gemini` | ⚡⚡ Fast | Free | ✅ Yes (already set) |
-| **Ollama** | `LLM_PROVIDER=ollama` | ⚡ Slow | Free | ❌ No (local) |
-| OpenAI | `LLM_PROVIDER=openai` | ⚡⚡ Fast | Paid | ✅ Yes (not set) |
+| Provider   | In .env               | Speed             | Cost | API Key Required     |
+| ---------- | --------------------- | ----------------- | ---- | -------------------- |
+| **Groq**   | `LLM_PROVIDER=groq`   | ⚡⚡⚡ Ultra Fast | Free | ✅ Yes (already set) |
+| **Gemini** | `LLM_PROVIDER=gemini` | ⚡⚡ Fast         | Free | ✅ Yes (already set) |
+| **Ollama** | `LLM_PROVIDER=ollama` | ⚡ Slow           | Free | ❌ No (local)        |
+| OpenAI     | `LLM_PROVIDER=openai` | ⚡⚡ Fast         | Paid | ✅ Yes (not set)     |
 
 ## Quick Test Commands
 
@@ -44,6 +44,7 @@ curl -X POST http://localhost:8007/api/v1/search \
 ## Switch Provider (3 Ways)
 
 **Method 1: Edit .env file directly**
+
 ```bash
 nano .env
 # Change: LLM_PROVIDER=groq
@@ -51,6 +52,7 @@ nano .env
 ```
 
 **Method 2: Use sed command**
+
 ```bash
 # Switch to Gemini
 sed -i 's/^LLM_PROVIDER=.*/LLM_PROVIDER=gemini/' .env
@@ -63,6 +65,7 @@ sed -i 's/^LLM_PROVIDER=.*/LLM_PROVIDER=groq/' .env
 ```
 
 **Method 3: Use environment variable**
+
 ```bash
 # Temporarily override (just for this command)
 LLM_PROVIDER=gemini python3 example_multi_llm.py

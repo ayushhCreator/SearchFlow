@@ -28,6 +28,13 @@ class Settings(BaseSettings):
     SEARXNG_SECRET: Optional[str] = None
     SEARXNG_ENGINES: Optional[str] = None
 
+    # Cache Configuration (Redis)
+    # Default: 6380 (Docker). If reusing Frappe's Redis, use port 13000
+    REDIS_URL: str = "redis://localhost:6380"
+    CACHE_ENABLED: bool = True
+    CACHE_TTL: int = 3600  # 1 hour in seconds
+    CACHE_PREFIX: str = "searchflow:"
+
     # LLM Configuration (for DSPy)
     LLM_PROVIDER: str = "groq"  # "ollama", "groq", or "gemini"
 
