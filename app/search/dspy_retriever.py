@@ -11,6 +11,7 @@ import dspy
 import requests
 
 from app.core.config import settings
+from app.search.credibility import get_credibility_score
 
 logger = logging.getLogger(__name__)
 
@@ -63,9 +64,20 @@ class SearXNGRetriever(dspy.Retrieve):
             response.raise_for_status()
 
             data = response.json()
+            raw_results = data.get("results", [])[:k]
 
-            # Store results with metadata for later use
-            self._last_results = data.get("results", [])[:k]
+            # Enrich results with credibility scores
+            self._last_results = []
+            for result in raw_results:
+                url = result.get("url", "")
+                score, category = get_credibility_score(url)
+                self._last_results.append(
+                    {
+                        **result,
+                        "credibility_score": score,
+                        "credibility_category": category,
+                    }
+                )
 
             # Return passages as strings (DSPy expects List[str])
             passages = []
@@ -74,7 +86,7 @@ class SearXNGRetriever(dspy.Retrieve):
                 text = f"{result.get('title', '')}\n{result.get('content', '')}"
                 passages.append(text.strip())
 
-            logger.info(f"Retrieved {len(passages)} passages")
+            logger.info(f"Retrieved {len(passages)} passages with credibility scores")
             return passages
 
         except Exception as e:

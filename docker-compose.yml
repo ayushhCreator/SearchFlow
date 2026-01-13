@@ -32,6 +32,9 @@ services:
     volumes:
       - searxng-data:/data
       - ./searxng/settings.yml:/etc/searxng/settings.yml
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     command: start
 
   redis:

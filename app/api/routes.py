@@ -51,6 +51,7 @@ async def search_stream(request: Request) -> EventSourceResponse:
             body = await request.json()
             query = body.get("query", "")
             skip_cache = body.get("skip_cache", False)
+            # Model is controlled by .env, not frontend
 
             if not query:
                 yield {
@@ -82,8 +83,10 @@ async def search_stream(request: Request) -> EventSourceResponse:
                         "data": json.dumps(
                             {
                                 "sources": event.get("sources", []),
+                                "context": event.get("context", []),
                                 "confidence": event.get("confidence", 0),
                                 "cached": event.get("cached", False),
+                                "model_used": event.get("model_used", "unknown"),
                             }
                         ),
                     }
@@ -126,3 +129,40 @@ async def cache_stats():
     """Get cache statistics."""
     cache = await get_cache_client()
     return await cache.get_stats()
+
+
+@router.post("/suggestions")
+async def get_suggestions(request: Request):
+    """Get AI-powered search suggestions.
+
+    For new users: Returns suggestions based on trending tech topics.
+    For returning users: Returns personalized suggestions based on history.
+    """
+    try:
+        from app.services.suggestions import get_suggestion_service
+
+        body = await request.json()
+        history = body.get("history", [])
+
+        service = get_suggestion_service()
+        suggestions = await service.generate_suggestions_async(history)
+
+        return {
+            "suggestions": suggestions,
+            "personalized": len(history) > 0,
+        }
+
+    except Exception as e:
+        logger.error(f"Suggestions failed: {e}")
+        # Return fallback suggestions on error
+        return {
+            "suggestions": [
+                "What are the latest features in Next.js?",
+                "Explain quantum computing simply",
+                "Best practices for React performance",
+                "How does a transformer model work?",
+                "Compare Python vs Rust for backend",
+            ],
+            "personalized": False,
+            "error": str(e),
+        }

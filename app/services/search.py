@@ -38,10 +38,12 @@ class SearchService:
         return self._cache
 
     def _get_pipeline(self) -> DSPyPipeline:
-        """Get or create DSPy pipeline."""
-        if self._pipeline is None:
-            self._pipeline = DSPyPipeline(k_results=self._k_results)
-        return self._pipeline
+        """Get or create DSPy pipeline (uses .env model configuration)."""
+        # CRITICAL: Always create fresh pipeline to ensure thread safety
+        # because SearXNGRetriever instances are stateful across requests
+        if self._pipeline:
+            return self._pipeline
+        return DSPyPipeline(k_results=self._k_results)
 
     async def search(
         self,
@@ -62,7 +64,16 @@ class SearchService:
 
         try:
             pipeline = self._get_pipeline()
-            result = pipeline.search_and_answer(query)
+            # Auto-detect complex queries and use decomposition
+            if pipeline._is_complex_query(query):
+                logger.info("🔀 Using complex_search for multi-aspect query")
+                result = pipeline.complex_search(query)
+            else:
+                result = pipeline.search_and_answer(query)
+
+            # Add model info to result
+            result["model_used"] = pipeline._model_name
+
             await cache.set(query, result)
             return self._format_result(result, False, include_context)
 
@@ -86,6 +97,7 @@ class SearchService:
             "sources": result.get("sources", []),
             "context": result.get("context") if include_context else None,
             "cached": cached,
+            "model_used": result.get("model_used", "unknown"),
         }
 
     async def search_streaming(
@@ -95,6 +107,7 @@ class SearchService:
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """Perform a streaming search."""
         cache = await self._get_cache()
+        model_used = "unknown"
 
         if not skip_cache:
             cached_result = await cache.get(query)
@@ -114,6 +127,7 @@ class SearchService:
 
         try:
             pipeline = self._get_pipeline()
+            model_used = pipeline._model_name
         except ValueError as e:
             yield {"type": "error", "message": f"Configuration error: {str(e)}"}
             return
@@ -133,6 +147,7 @@ class SearchService:
             "confidence": result.get("confidence", 0),
             "context": result.get("context", []),
             "cached": False,
+            "model_used": model_used,
         }
 
     async def _stream_words(
