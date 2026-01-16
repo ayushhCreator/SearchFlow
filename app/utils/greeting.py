@@ -5,32 +5,50 @@ Detects greetings and casual conversation.
 """
 
 GREETING_PATTERNS = [
-    "hi", "hello", "hey", "greetings", "good morning", "good afternoon",
-    "good evening", "howdy", "what's up", "whats up", "sup", "yo",
-    "hola", "bonjour", "namaste", "salut"
+    "hi",
+    "hello",
+    "hey",
+    "greetings",
+    "good morning",
+    "good afternoon",
+    "good evening",
+    "howdy",
+    "what's up",
+    "whats up",
+    "sup",
+    "yo",
+    "hola",
+    "bonjour",
+    "namaste",
+    "salut",
 ]
 
 CASUAL_PATTERNS = [
-    "how are you", "how r u", "how do you do", "what's going on",
-    "how's it going", "hows it going", "nice to meet you"
+    "how are you",
+    "how r u",
+    "how do you do",
+    "what's going on",
+    "how's it going",
+    "hows it going",
+    "nice to meet you",
 ]
 
 
 def is_greeting(query: str) -> bool:
     """Check if query is a greeting or casual conversation."""
     query_lower = query.lower().strip()
-    
+
     # Exact match or starts with greeting
     for pattern in GREETING_PATTERNS + CASUAL_PATTERNS:
         if query_lower == pattern or query_lower.startswith(pattern):
             return True
-    
+
     # Short queries that are likely greetings
     if len(query_lower.split()) <= 3:
         for pattern in GREETING_PATTERNS:
             if pattern in query_lower:
                 return True
-    
+
     return False
 
 
@@ -52,5 +70,5 @@ def get_greeting_response() -> dict:
         "context": [],
         "confidence": 1.0,
         "sources": [],
-        "is_greeting": True
+        "is_greeting": True,
     }

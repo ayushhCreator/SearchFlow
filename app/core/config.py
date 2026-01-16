@@ -36,7 +36,9 @@ class Settings(BaseSettings):
     CACHE_PREFIX: str = "searchflow:"
 
     # LLM Configuration (for DSPy)
-    LLM_PROVIDER: str = "openrouter"  # "ollama", "groq", "gemini", "openai", or "openrouter"
+    LLM_PROVIDER: str = (
+        "openrouter"  # "ollama", "groq", "gemini", "openai", or "openrouter"
+    )
 
     # Gemini Configuration
     GEMINI_API_KEY: Optional[str] = None

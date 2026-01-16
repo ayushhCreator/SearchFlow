@@ -11,7 +11,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from app.ai.pipeline import DSPyPipeline
 from app.cache.redis_client import CacheClient, get_cache_client
-from app.utils.greeting import is_greeting, get_greeting_response
+from app.utils.greeting import get_greeting_response, is_greeting
 
 logger = logging.getLogger(__name__)
 

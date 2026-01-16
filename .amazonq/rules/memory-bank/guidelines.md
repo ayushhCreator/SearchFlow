@@ -36,10 +36,10 @@ Higher scores indicate more trustworthy sources.
 ```python
 def get_credibility_score(url: str) -> tuple[float, str]:
     """Get credibility score for a URL."""
-    
+
 async def process_results(self, query: str, results: List[Dict]) -> Dict:
     """Process search results."""
-    
+
 class Settings(BaseSettings):
     ALLOWED_ORIGINS: Union[List[str], str] = "..."
 ```
@@ -113,7 +113,7 @@ class SearchRequestSchema(BaseModel):
     limit: Optional[int] = Field(
         10, ge=1, le=50, description="Maximum number of results (1-50)"
     )
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -137,14 +137,14 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     REDIS_URL: str = "redis://localhost:6380"
     CACHE_TTL: int = 3600
-    
+
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
     def parse_origins(cls, v):
         if isinstance(v, str):
             return [origin.strip() for origin in v.split(",")]
         return v
-    
+
     class Config:
         env_file = ".env"
 ```
@@ -255,7 +255,7 @@ export default function Home() {
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     setThreads(loadThreads());
   }, []);
@@ -319,11 +319,11 @@ let buffer = "";
 while (true) {
   const { done, value } = await reader.read();
   if (done) break;
-  
+
   buffer += decoder.decode(value, { stream: true });
   const lines = buffer.split("\n\n");
   buffer = lines.pop() || "";
-  
+
   for (const line of lines) {
     const trimmed = line.replace(/^data: /, "").trim();
     if (!trimmed || trimmed === "[DONE]") continue;
@@ -410,7 +410,7 @@ DOMAIN_SCORES: Dict[str, tuple[float, str]] = {
     # Official Documentation (0.95)
     "docs.python.org": (0.95, "official_docs"),
     "fastapi.tiangolo.com": (0.95, "official_docs"),
-    
+
     # Academic & Research (0.93)
     "arxiv.org": (0.93, "academic"),
 }
