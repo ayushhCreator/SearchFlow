@@ -44,10 +44,12 @@ def create_llm(
         return _create_ollama_lm(model_override)
     elif provider == "openai":
         return _create_openai_lm(model_override)
+    elif provider == "openrouter":
+        return _create_openrouter_lm(model_override)
     else:
         raise ValueError(
             f"Unknown LLM provider: {provider}. "
-            f"Supported: 'gemini', 'groq', 'ollama', 'openai'"
+            f"Supported: 'gemini', 'groq', 'ollama', 'openai', 'openrouter'"
         )
 
 
@@ -108,3 +110,21 @@ def _create_openai_lm(model_override: Optional[str] = None) -> dspy.LM:
     logger.info(f"Using OpenAI model: {model}")
 
     return dspy.LM(model=f"openai/{model}", api_key=api_key, max_tokens=1000)
+
+
+def _create_openrouter_lm(model_override: Optional[str] = None) -> dspy.LM:
+    """Create OpenRouter LLM."""
+    api_key = settings.OPENROUTER_API_KEY
+    if not api_key:
+        raise ValueError("OPENROUTER_API_KEY not set in environment")
+
+    model = model_override or settings.OPENROUTER_MODEL
+    logger.info(f"Using OpenRouter model: {model}")
+
+    return dspy.LM(
+        model=f"openai/{model}",
+        api_key=api_key,
+        api_base="https://openrouter.ai/api/v1",
+        max_tokens=settings.OPENROUTER_MAX_TOKENS,
+        temperature=settings.OPENROUTER_TEMPERATURE,
+    )

@@ -11,6 +11,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from app.ai.pipeline import DSPyPipeline
 from app.cache.redis_client import CacheClient, get_cache_client
+from app.utils.greeting import is_greeting, get_greeting_response
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +54,11 @@ class SearchService:
     ) -> Dict[str, Any]:
         """Perform a search with caching."""
         logger.info(f"SearchService.search: {query[:50]}...")
+
+        # Handle greetings
+        if is_greeting(query):
+            logger.info("Detected greeting, returning welcome message")
+            return get_greeting_response()
 
         cache = await self._get_cache()
 
@@ -106,6 +112,22 @@ class SearchService:
         skip_cache: bool = False,
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """Perform a streaming search."""
+        # Handle greetings
+        if is_greeting(query):
+            greeting = get_greeting_response()
+            yield {"type": "status", "message": "👋 Welcome!"}
+            async for event in self._stream_words(greeting["answer"]):
+                yield event
+            yield {
+                "type": "done",
+                "sources": [],
+                "confidence": 1.0,
+                "cached": False,
+                "model_used": "greeting",
+                "is_greeting": True,
+            }
+            return
+
         cache = await self._get_cache()
         model_used = "unknown"
 

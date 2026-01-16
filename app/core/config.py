@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     CACHE_PREFIX: str = "searchflow:"
 
     # LLM Configuration (for DSPy)
-    LLM_PROVIDER: str = "groq"  # "ollama", "groq", or "gemini"
+    LLM_PROVIDER: str = "openrouter"  # "ollama", "groq", "gemini", "openai", or "openrouter"
 
     # Gemini Configuration
     GEMINI_API_KEY: Optional[str] = None
@@ -59,6 +59,12 @@ class Settings(BaseSettings):
     # Legacy OpenAI Configuration
     OPENAI_API_KEY: Optional[str] = None
     OPENAI_MODEL: str = "gpt-4o-mini"
+
+    # OpenRouter Configuration
+    OPENROUTER_API_KEY: Optional[str] = None
+    OPENROUTER_MODEL: str = "nvidia/nemotron-nano-12b-v2-vl:free"
+    OPENROUTER_MAX_TOKENS: int = 5000
+    OPENROUTER_TEMPERATURE: float = 0.3
 
     # Logging Configuration
     LOG_LEVEL: str = "INFO"

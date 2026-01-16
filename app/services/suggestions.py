@@ -12,6 +12,7 @@ from typing import List, Optional
 import dspy
 import httpx
 
+from app.ai.llm_providers import create_llm
 from app.ai.signatures import SuggestionGenerator
 from app.core.config import settings
 
@@ -27,36 +28,8 @@ class SuggestionService:
         self.generator = dspy.Predict(SuggestionGenerator)
 
     def _init_lm(self) -> dspy.LM:
-        """Initialize the language model based on settings."""
-        provider = settings.LLM_PROVIDER.lower()
-
-        if provider == "groq":
-            if not settings.GROQ_API_KEY:
-                raise ValueError("GROQ_API_KEY not set")
-            return dspy.LM(
-                model=f"groq/{settings.GROQ_MODEL}",
-                api_key=settings.GROQ_API_KEY,
-                max_tokens=settings.GROQ_MAX_TOKENS,
-                temperature=settings.GROQ_TEMPERATURE,
-            )
-        elif provider == "gemini":
-            if not settings.GEMINI_API_KEY:
-                raise ValueError("GEMINI_API_KEY not set")
-            return dspy.LM(
-                model=f"gemini/{settings.GEMINI_MODEL}",
-                api_key=settings.GEMINI_API_KEY,
-                max_tokens=settings.GEMINI_MAX_TOKENS,
-                temperature=settings.GEMINI_TEMPERATURE,
-            )
-        elif provider == "ollama":
-            return dspy.LM(
-                model=f"ollama_chat/{settings.OLLAMA_MODEL}",
-                api_base=settings.OLLAMA_BASE_URL,
-                max_tokens=settings.OLLAMA_MAX_TOKENS,
-                temperature=settings.OLLAMA_TEMPERATURE,
-            )
-        else:
-            raise ValueError(f"Unknown LLM provider: {provider}")
+        """Initialize the language model using centralized provider."""
+        return create_llm()
 
     async def _fetch_trending_topics(self) -> str:
         """Fetch trending tech topics using SearXNG."""
